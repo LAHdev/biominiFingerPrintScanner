@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 if (capturedImage != null) {
                     val iv = findViewById<ImageView>(R.id.imagePreview)
-                    if(iv!=null) {
+                    if (iv != null) {
                         iv.setImageBitmap(capturedImage)
                         Log.i(TAG, "=====StartCapturing catpuredImage")
 
@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() {
         mCaptureOptionDefault.extractParam.captureTemplate = false
         findViewById<ImageView>(R.id.imagePreview).setImageBitmap(null)
 
-        mCurrentDevice?.let{
+        mCurrentDevice?.let {
             val result = it.captureAuto(mCaptureOptionDefault, mCaptureResponseDefault)
             if (result == IBioMiniDevice.ErrorCode.ERR_NOT_SUPPORTED.value()) {
                 Log.i(TAG, "This device is not support auto capture.")
@@ -325,6 +325,39 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        stopCapturing()
+    }
+
+    fun stopCapturing() {
+        if (mCurrentDevice != null) {
+            mCaptureOptionDefault.captureFuntion = CaptureFuntion.NONE
+
+            Thread {
+                val result = mCurrentDevice!!.abortCapturing()
+                var nRetryCount = 0
+                while (mCurrentDevice != null && mCurrentDevice!!.isCapturing) {
+                    SystemClock.sleep(10)
+                    nRetryCount++
+                }
+                //                            Log.d("AbortCapturing" , String.format(Locale.ENGLISH ,
+//                                    "IsCapturing return false.(Abort-lead time: %dms) " ,
+//                                    nRetryCount* 10));
+                Log.i(TAG, "run: abortCapturing : $result")
+                if (result == 0) {
+                    Log.i(TAG, "abort capture successfull!")
+                } else {
+                    Log.i(TAG, "abort capture fail!")
+                }
+            }.start()
         }
     }
 }
